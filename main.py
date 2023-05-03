@@ -1,93 +1,112 @@
-import requests
+from Checker import deck_check
+from Plotter import plot_deck
+from prettytable import PrettyTable
+
+import argparse
+parser = argparse.ArgumentParser(description='Check the legality of a Magic: The Gathering deck using the Scryfall API')
+
+parser.add_argument('-l', '--list', type=str, required=True, help='The filename of the decklist to check')
+parser.add_argument('-f', '--format', type=str, default="modern", help='The format to check the deck against (e.g. standard, modern, pioneer)')
+parser.add_argument('-p', '--print', action='store_true', default=False, help='Print the decklist in a formatted way')
+parser.add_argument('-b', '--basic', action='store_true', default=False, help='Print the decklist with the basic lands')
+args = parser.parse_args()
+
+# Access the arguments using args.format, args.list, and args.print
+deck_file = args.list
+deck_format = args.format
+print_decklist = args.print
+basic_print = args.basic
+
 
 def run():
-    deck = read_deckfile('torbran.txt')
-    # print(deck)
-    msg = validate("commander", deck)
+    deck = read_deckfile(deck_file)
+    deck_show(deck)
+    msg = deck_check(deck, deck_format)
+    print()
     print(msg)
+    
+    if not print_decklist:
+        return
+
+    dimentions = ask_dimensions()
+    print("These are the dimentions (%s x %s)" % dimentions)
+    
+    result = plot_deck(deck, basic_print, dimentions, deck_file)
+    print(result)
+
+def deck_show(deck):
+
+    # Creamos la tabla miandeck
+    main = PrettyTable()
+    main.field_names = ["Card", "Quantity"]
+    
+    # Creamos la tabla sidedeck
+    side = PrettyTable()
+    side.field_names = ["Card", "Quantity"]
+
+    
+    print("|\t\tMAIN DECK\t\t|")
+    for card in deck.get("maindeck"):
+        card_name, quantity = card.get("cardname"), card.get("quantity")
+        main.add_row([card_name, quantity])
+    # Mostramos la tabla
+    print(main)
+    print("|\t\SIDE DECK\t\t|")
+    for card in deck.get("sidedeck"):
+        card_name, quantity = card.get("cardname"), card.get("quantity")
+        side.add_row([card_name, quantity])
+    # Mostramos la tabla
+    print(side)
+
+
+def ask_dimensions():
+    types = {
+        "A4": (21.0, 29.7),
+        "Letter": (21.6, 27.9),
+        "Custom": (0, 0)
+    }
+    print("Choose a paper size:", str(list(types.keys())))
+    op = input()
+    if op == "Custom":
+        types["Custom"] = (float(input("Enter value for Custom Width (cm): ")), float(input("Enter value for Custom Height (cm): ")))
+    
+    width_cm, height_cm = types[op.capitalize()]
+    ppi = 300
+    width_px = int(width_cm * ppi / 2.54)
+    height_px = int(height_cm * ppi / 2.54)
+    
+    return (width_px, height_px)
+
 
 def read_deckfile(filename: str) -> dict:
-    
     maindeck = []
     maincount = 0
-    sideboard = False    
+    sideboard = False
     sidedeck = []
     sidecount = 0
-    
-    for line in open(filename, "r").readlines():
+
+    for line in open(filename, "r", encoding="utf-8").readlines():
         line = line.strip()
-        if not line: continue
-        
-        if line.startswith("#"):
+        if not line:
             sideboard = True
             continue
-        
+
         reg = line.split(" ")
         card = " ".join(reg[1:])
         quantity = int(reg[0])
-
         if sideboard:
             sidedeck.append({"cardname": card, "quantity": quantity})
             sidecount += quantity
         else:
             maindeck.append({"cardname": card, "quantity": quantity})
             maincount += quantity
-            
-    
-    return {"maindeck": maindeck, 
+
+    return {"maindeck": maindeck,
             "maincount": maincount,
-            "sidedeck": sidedeck, 
+            "sidedeck": sidedeck,
             "sidecount": sidecount,
             }
 
-
-def validate(format: str, deck: dict) -> bool:
-
-    reasons = ""
-    
-    if format == "commander":
-        if deck.get("maincount") != 99:
-            reasons += f"Deck contains {deck.get('maincount')} card instead of 99.\n"
-            
-        if deck.get("sidecount") != 1:
-            reasons += f"Deck contains more than 1 commander.\n"
-        
-    
-    else:
-        if deck.get("maincount") < 60:
-            reasons += f"Deck contains too few cards (minimum quantity is 60).\n"
-        
-        if deck.get("sidecount") > 15:
-                reasons += f"Sideboard contains too many cards (maximun quantity is 15).\n"
-    for card in deck.get("maindeck"):
-        reasons += check_legality(*card.values(), format=format)
-    
-    for card in deck.get("sidedeck"):
-        reasons += check_legality(*card.values(), format=format)
-    
-    if not reasons:
-        reasons += f"The deck is legal in {format}"
-    return reasons
-
-def check_legality(cardname: str, quantity: int, format: str) -> str:
-    reasons = ""
-    
-    r =  f"https://api.scryfall.com/cards/named?exact={cardname}"
-    response = requests.get(r).json()
-    
-    if response.get('legalities').get(format) != "legal":
-        reasons += f"{cardname} is {response.get('legalities').get(format).replace('_',' ')} in {format}.\n"
-
-    if (response.get("name") not in 
-        ["Persistent Petitioners", "Rat Colony","Relentless Rats","Shadowborn Apostle","Dragon's Approach"]):
-        
-        if not response.get("type_line").startswith("Basic") and quantity > 4:
-            reasons += f"Too many copies of {cardname}\na deck can have up to 4 copies of it.\n"
-    
-    if response.get("name") == "Seven Dwarves" and quantity > 7:
-        reasons += f"Too many copies of {cardname}\na deck can have up to 7 copies of it.\n"
-
-    return reasons
 
 if __name__ == "__main__":
     run()

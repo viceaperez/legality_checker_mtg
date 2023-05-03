@@ -1,0 +1,37 @@
+1 Aether Spellbomb
+2 Ancient Stirrings
+4 Arcbound Ravager
+1 Arcbound Worker
+1 Blinkmoth Nexus
+2 Boseiju, Who Endures
+1 Breeding Pool
+1 Forest
+1 Gemstone Caverns
+1 Grove of the Burnwillows
+4 Hangarback Walker
+4 Hardened Scales
+4 Inkmoth Nexus
+1 Llanowar Reborn
+3 Misty Rainforest
+1 Otawara, Soaring City
+2 Ozolith, the Shattered Spire
+2 Patchwork Automaton
+3 Spire of Industry
+1 Springleaf Drum
+1 Stomping Ground
+3 The Ozolith
+4 Urza's Saga
+4 Walking Ballista
+1 Waterlogged Grove
+3 Welding Jar
+4 Zabaz, the Glimmerwasp
+
+1 Gemstone Caverns
+1 Haywire Mite
+4 Metallic Rebuke
+3 Nature's Claim
+1 Orvar, the All-Form
+2 Patchwork Automaton
+1 Phyrexian Metamorph
+1 Pithing Needle
+1 Relic of Progenitus
