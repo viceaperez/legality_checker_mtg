@@ -1,7 +1,4 @@
-# Scryfall mtg legaity checker
-
-This script checks if a Magic: The Gathering decklist is valid in a format using Scryfall API REST.
-
+## Scryfall mtg legality checker
 ## Usage
 
 1. Install the required packages by running `pip install -r requirements.txt` in the terminal.
